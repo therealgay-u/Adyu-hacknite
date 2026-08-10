@@ -57,7 +57,7 @@ export const INITIAL_MOCK_SHIPMENTS = [
   },
   {
     id: 'BATCH-2026-004',
-    produceType: 'Fresh Spinach',
+    produceType: 'Tomatoes',
     temperature: 26.0,
     humidity: 82,
     lightFlux: 950,
@@ -165,11 +165,14 @@ export async function getPrediction(payload) {
     }
 
     const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
     return {
-      risk_level: data.risk_level || 'Low',
-      risk_score: Number(data.risk_score) || 0.0,
-      recommended_action: data.recommended_action || 'Standard dispatch',
-      explanation: data.explanation || '',
+      risk_level: data.risk_level,
+      risk_score: Number(data.risk_score),
+      recommended_action: data.recommended_action,
+      explanation: data.explanation,
     };
   } catch (err) {
     if (err.name === 'TypeError' && err.message.includes('fetch')) {

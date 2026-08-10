@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { INITIAL_WAREHOUSES, INITIAL_STOCKS, DISTANCE_MATRIX } from '../data/warehouseData';
+import { getPrediction } from '../services/predictService';
+import { startSimTicker, triggerCalamity as simTriggerCalamity } from '../services/warehouseSimService';
+import { getNearestSafeWarehouse } from '../services/routingService';
 
 const WarehouseContext = createContext();
 
@@ -7,6 +10,80 @@ export function WarehouseProvider({ children }) {
   const [warehouses, setWarehouses] = useState(INITIAL_WAREHOUSES);
   const [stocks, setStocks] = useState(INITIAL_STOCKS);
   const [distanceMatrix] = useState(DISTANCE_MATRIX);
+
+  // Keep refs for current state to ensure async monitoring loop always accesses fresh state
+  const warehousesRef = useRef(warehouses);
+  warehousesRef.current = warehouses;
+
+  const stocksRef = useRef(stocks);
+  stocksRef.current = stocks;
+
+  /**
+   * Re-evaluates risk predictions for all stock items residing in a specific warehouse
+   * after its environmental conditions change.
+   *
+   * @param {string} warehouseId
+   * @param {Object} updatedWarehouse
+   * @param {Array<Object>} currentWarehouses
+   */
+  const reevaluateStockForWarehouse = async (warehouseId, updatedWarehouse, currentWarehouses) => {
+    const candidate = getNearestSafeWarehouse(warehouseId, currentWarehouses, distanceMatrix);
+
+    const distance_km = candidate ? candidate.distance_km : 0;
+    const transit_time_hours = candidate ? candidate.avg_travel_hours : 0;
+
+    const affectedStocks = stocksRef.current.filter((stk) => stk.warehouse_id === warehouseId);
+    if (affectedStocks.length === 0) return;
+
+    try {
+      const updatedStockPromises = affectedStocks.map(async (stk) => {
+        const payload = {
+          produce_type: stk.produce_type,
+          temperature_c: updatedWarehouse.current_temp,
+          humidity_pct: updatedWarehouse.current_humidity,
+          distance_km,
+          transit_time_hours,
+          ...(stk.light_flux !== undefined
+            ? { light_flux: stk.light_flux }
+            : { light_flux: updatedWarehouse.light_flux }),
+          ...(stk.co2_ppm !== undefined
+            ? { co2_ppm: stk.co2_ppm }
+            : { co2_ppm: updatedWarehouse.co2_ppm }),
+        };
+
+        const prediction = await getPrediction(payload);
+        const action = prediction.recommended_action || '';
+        const rescueEligible =
+          action.includes('rescue channel') || action.toLowerCase().includes('rescue');
+
+        return {
+          ...stk,
+          temperature_c: updatedWarehouse.current_temp,
+          humidity_pct: updatedWarehouse.current_humidity,
+          risk_level: prediction.risk_level,
+          risk_score: prediction.risk_score,
+          recommended_action: prediction.recommended_action,
+          explanation: prediction.explanation,
+          candidateWarehouseId: candidate ? candidate.id : null,
+          candidateWarehouseName: candidate ? candidate.name : null,
+          candidateDistanceKm: candidate ? candidate.distance_km : 0,
+          candidateTransitHours: candidate ? candidate.avg_travel_hours : 0,
+          rescueEligible,
+        };
+      });
+
+      const updatedItems = await Promise.all(updatedStockPromises);
+
+      setStocks((prevStocks) =>
+        prevStocks.map((stk) => {
+          const match = updatedItems.find((u) => u.id === stk.id);
+          return match ? match : stk;
+        })
+      );
+    } catch (err) {
+      console.error(`Failed to re-evaluate prediction for warehouse ${warehouseId}:`, err);
+    }
+  };
 
   // Warehouse CRUD
   const addWarehouse = (warehouseData) => {
@@ -26,15 +103,31 @@ export function WarehouseProvider({ children }) {
   };
 
   const updateWarehouse = (id, updatedFields) => {
-    setWarehouses((prev) =>
-      prev.map((wh) => (wh.id === id ? { ...wh, ...updatedFields } : wh))
-    );
+    setWarehouses((prevWarehouses) => {
+      const nextWarehouses = prevWarehouses.map((wh) =>
+        wh.id === id ? { ...wh, ...updatedFields } : wh
+      );
+      const updatedWh = nextWarehouses.find((w) => w.id === id);
+      if (updatedWh) {
+        reevaluateStockForWarehouse(id, updatedWh, nextWarehouses);
+      }
+      return nextWarehouses;
+    });
   };
 
   const deleteWarehouse = (id) => {
     setWarehouses((prev) => prev.filter((wh) => wh.id !== id));
-    // Also remove or reassign associated stock
     setStocks((prev) => prev.filter((stk) => stk.warehouse_id !== id));
+  };
+
+  /**
+   * On-demand trigger for severe environmental failure in target warehouse
+   * @param {string} warehouseId
+   */
+  const triggerCalamity = (warehouseId) => {
+    simTriggerCalamity(warehouseId, (id, severeFields) => {
+      updateWarehouse(id, severeFields);
+    });
   };
 
   // Stock CRUD
@@ -52,6 +145,12 @@ export function WarehouseProvider({ children }) {
       ...stockData,
     };
     setStocks((prev) => [newStock, ...prev]);
+
+    // Immediately trigger prediction evaluation for new stock item
+    const targetWh = warehousesRef.current.find((w) => w.id === newStock.warehouse_id);
+    if (targetWh) {
+      reevaluateStockForWarehouse(newStock.warehouse_id, targetWh, warehousesRef.current);
+    }
     return newStock;
   };
 
@@ -70,6 +169,19 @@ export function WarehouseProvider({ children }) {
   const getStocksByWarehouseId = (warehouseId) =>
     stocks.filter((stk) => stk.warehouse_id === warehouseId);
 
+  // Background simulation ticker (~5s ambient drift)
+  useEffect(() => {
+    const stopTicker = startSimTicker(
+      () => warehousesRef.current,
+      (whId, updatedFields) => {
+        updateWarehouse(whId, updatedFields);
+      },
+      5000
+    );
+
+    return () => stopTicker();
+  }, []);
+
   return (
     <WarehouseContext.Provider
       value={{
@@ -79,6 +191,7 @@ export function WarehouseProvider({ children }) {
         addWarehouse,
         updateWarehouse,
         deleteWarehouse,
+        triggerCalamity,
         addStock,
         updateStock,
         deleteStock,
