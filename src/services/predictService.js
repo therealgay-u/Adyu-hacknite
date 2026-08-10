@@ -3,7 +3,7 @@
  * Gated by USE_MOCK constant. Flipping USE_MOCK to false switches the entire
  * application from mock data to live backend fetch API without any other code changes.
  */
-export const USE_MOCK = False;
+export const USE_MOCK = false;
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
