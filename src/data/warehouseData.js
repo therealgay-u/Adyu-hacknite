@@ -1,0 +1,235 @@
+/**
+ * Initial seed data for Warehouses, Stock Batches, and Distance Matrix.
+ * Isolated in src/data/warehouseData.js for frontend-only state management.
+ */
+
+export const INITIAL_WAREHOUSES = [
+  {
+    id: 'WH-BLR-01',
+    name: 'Bengaluru Central Wholesale Hub',
+    current_temp: 18.5,
+    current_humidity: 68,
+    light_flux: 450,
+    co2_ppm: 520,
+    capacity: 2500, // in crates / kg
+    status: 'Optimal', // Optimal | Warning | Critical
+  },
+  {
+    id: 'WH-MYS-02',
+    name: 'Mysuru Cold Storage & Flower Hub',
+    current_temp: 14.0,
+    current_humidity: 75,
+    light_flux: 320,
+    co2_ppm: 420,
+    capacity: 1800,
+    status: 'Optimal',
+  },
+  {
+    id: 'WH-HOS-05',
+    name: 'Hosur Flower Distribution Center',
+    current_temp: 21.5,
+    current_humidity: 78,
+    light_flux: 600,
+    co2_ppm: 680,
+    capacity: 1500,
+    status: 'Warning',
+  },
+  {
+    id: 'WH-CHE-03',
+    name: 'Chennai Koyambedu Terminal',
+    current_temp: 29.0,
+    current_humidity: 88,
+    light_flux: 1100,
+    co2_ppm: 1250,
+    capacity: 3500,
+    status: 'Critical',
+  },
+  {
+    id: 'WH-COI-04',
+    name: 'Coimbatore Perishable Hub',
+    current_temp: 16.8,
+    current_humidity: 70,
+    light_flux: 380,
+    co2_ppm: 490,
+    capacity: 2000,
+    status: 'Optimal',
+  },
+  {
+    id: 'WH-HYD-06',
+    name: 'Hyderabad Cold Chain Terminal',
+    current_temp: 24.2,
+    current_humidity: 82,
+    light_flux: 850,
+    co2_ppm: 920,
+    capacity: 3000,
+    status: 'Warning',
+  },
+];
+
+export const INITIAL_STOCKS = [
+  {
+    id: 'STK-BLR-101',
+    produce_type: 'Jasmine Flowers',
+    quantity: 350, // in kg/crates
+    warehouse_id: 'WH-BLR-01',
+    arrived_at: '2026-08-09 14:30',
+    temperature_c: 18.5,
+    humidity_pct: 68,
+    light_flux: 450,
+    co2_ppm: 520,
+    risk_level: 'Low',
+    risk_score: 22.0,
+  },
+  {
+    id: 'STK-BLR-102',
+    produce_type: 'Red Roses',
+    quantity: 500,
+    warehouse_id: 'WH-BLR-01',
+    arrived_at: '2026-08-09 18:00',
+    temperature_c: 18.5,
+    humidity_pct: 68,
+    light_flux: 450,
+    co2_ppm: 520,
+    risk_level: 'Low',
+    risk_score: 19.5,
+  },
+  {
+    id: 'STK-HOS-201',
+    produce_type: 'Marigold Flowers',
+    quantity: 420,
+    warehouse_id: 'WH-HOS-05',
+    arrived_at: '2026-08-09 10:15',
+    temperature_c: 21.5,
+    humidity_pct: 78,
+    light_flux: 600,
+    co2_ppm: 680,
+    risk_level: 'Medium',
+    risk_score: 55.4,
+  },
+  {
+    id: 'STK-MYS-301',
+    produce_type: 'Jasmine Flowers',
+    quantity: 600,
+    warehouse_id: 'WH-MYS-02',
+    arrived_at: '2026-08-09 16:45',
+    temperature_c: 14.0,
+    humidity_pct: 75,
+    light_flux: 320,
+    co2_ppm: 420,
+    risk_level: 'Low',
+    risk_score: 14.2,
+  },
+  {
+    id: 'STK-CHE-401',
+    produce_type: 'Fresh Spinach',
+    quantity: 300,
+    warehouse_id: 'WH-CHE-03',
+    arrived_at: '2026-08-09 08:00',
+    temperature_c: 29.0,
+    humidity_pct: 88,
+    light_flux: 1100,
+    co2_ppm: 1250,
+    risk_level: 'High',
+    risk_score: 91.5,
+  },
+  {
+    id: 'STK-CHE-402',
+    produce_type: 'Tomatoes',
+    quantity: 800,
+    warehouse_id: 'WH-CHE-03',
+    arrived_at: '2026-08-09 11:20',
+    temperature_c: 29.0,
+    humidity_pct: 88,
+    light_flux: 1100,
+    co2_ppm: 1250,
+    risk_level: 'High',
+    risk_score: 86.8,
+  },
+  {
+    id: 'STK-COI-501',
+    produce_type: 'Banana',
+    quantity: 750,
+    warehouse_id: 'WH-COI-04',
+    arrived_at: '2026-08-09 15:10',
+    temperature_c: 16.8,
+    humidity_pct: 70,
+    light_flux: 380,
+    co2_ppm: 490,
+    risk_level: 'Low',
+    risk_score: 18.0,
+  },
+  {
+    id: 'STK-COI-502',
+    produce_type: 'Pineapple',
+    quantity: 400,
+    warehouse_id: 'WH-COI-04',
+    arrived_at: '2026-08-09 17:00',
+    temperature_c: 16.8,
+    humidity_pct: 70,
+    light_flux: 380,
+    co2_ppm: 490,
+    risk_level: 'Low',
+    risk_score: 21.5,
+  },
+  {
+    id: 'STK-HYD-601',
+    produce_type: 'Orange',
+    quantity: 900,
+    warehouse_id: 'WH-HYD-06',
+    arrived_at: '2026-08-09 09:30',
+    temperature_c: 24.2,
+    humidity_pct: 82,
+    light_flux: 850,
+    co2_ppm: 920,
+    risk_level: 'Medium',
+    risk_score: 62.3,
+  },
+];
+
+/**
+ * Static Distance Matrix for all warehouse pairs.
+ * Used client-side for candidate warehouse selection and greedy routing.
+ */
+export const DISTANCE_MATRIX = [
+  // WH-BLR-01 distances
+  { from_warehouse_id: 'WH-BLR-01', to_warehouse_id: 'WH-HOS-05', distance_km: 40, avg_travel_hours: 1.0 },
+  { from_warehouse_id: 'WH-BLR-01', to_warehouse_id: 'WH-MYS-02', distance_km: 140, avg_travel_hours: 3.0 },
+  { from_warehouse_id: 'WH-BLR-01', to_warehouse_id: 'WH-CHE-03', distance_km: 350, avg_travel_hours: 6.5 },
+  { from_warehouse_id: 'WH-BLR-01', to_warehouse_id: 'WH-COI-04', distance_km: 360, avg_travel_hours: 7.0 },
+  { from_warehouse_id: 'WH-BLR-01', to_warehouse_id: 'WH-HYD-06', distance_km: 570, avg_travel_hours: 10.0 },
+
+  // WH-MYS-02 distances
+  { from_warehouse_id: 'WH-MYS-02', to_warehouse_id: 'WH-BLR-01', distance_km: 140, avg_travel_hours: 3.0 },
+  { from_warehouse_id: 'WH-MYS-02', to_warehouse_id: 'WH-HOS-05', distance_km: 180, avg_travel_hours: 4.0 },
+  { from_warehouse_id: 'WH-MYS-02', to_warehouse_id: 'WH-COI-04', distance_km: 210, avg_travel_hours: 4.5 },
+  { from_warehouse_id: 'WH-MYS-02', to_warehouse_id: 'WH-CHE-03', distance_km: 480, avg_travel_hours: 9.0 },
+  { from_warehouse_id: 'WH-MYS-02', to_warehouse_id: 'WH-HYD-06', distance_km: 710, avg_travel_hours: 12.5 },
+
+  // WH-HOS-05 distances
+  { from_warehouse_id: 'WH-HOS-05', to_warehouse_id: 'WH-BLR-01', distance_km: 40, avg_travel_hours: 1.0 },
+  { from_warehouse_id: 'WH-HOS-05', to_warehouse_id: 'WH-MYS-02', distance_km: 180, avg_travel_hours: 4.0 },
+  { from_warehouse_id: 'WH-HOS-05', to_warehouse_id: 'WH-CHE-03', distance_km: 310, avg_travel_hours: 5.5 },
+  { from_warehouse_id: 'WH-HOS-05', to_warehouse_id: 'WH-COI-04', distance_km: 330, avg_travel_hours: 6.2 },
+  { from_warehouse_id: 'WH-HOS-05', to_warehouse_id: 'WH-HYD-06', distance_km: 610, avg_travel_hours: 11.0 },
+
+  // WH-CHE-03 distances
+  { from_warehouse_id: 'WH-CHE-03', to_warehouse_id: 'WH-HOS-05', distance_km: 310, avg_travel_hours: 5.5 },
+  { from_warehouse_id: 'WH-CHE-03', to_warehouse_id: 'WH-BLR-01', distance_km: 350, avg_travel_hours: 6.5 },
+  { from_warehouse_id: 'WH-CHE-03', to_warehouse_id: 'WH-MYS-02', distance_km: 480, avg_travel_hours: 9.0 },
+  { from_warehouse_id: 'WH-CHE-03', to_warehouse_id: 'WH-COI-04', distance_km: 510, avg_travel_hours: 9.5 },
+  { from_warehouse_id: 'WH-CHE-03', to_warehouse_id: 'WH-HYD-06', distance_km: 630, avg_travel_hours: 11.5 },
+
+  // WH-COI-04 distances
+  { from_warehouse_id: 'WH-COI-04', to_warehouse_id: 'WH-MYS-02', distance_km: 210, avg_travel_hours: 4.5 },
+  { from_warehouse_id: 'WH-COI-04', to_warehouse_id: 'WH-HOS-05', distance_km: 330, avg_travel_hours: 6.2 },
+  { from_warehouse_id: 'WH-COI-04', to_warehouse_id: 'WH-BLR-01', distance_km: 360, avg_travel_hours: 7.0 },
+  { from_warehouse_id: 'WH-COI-04', to_warehouse_id: 'WH-CHE-03', distance_km: 510, avg_travel_hours: 9.5 },
+  { from_warehouse_id: 'WH-COI-04', to_warehouse_id: 'WH-HYD-06', distance_km: 900, avg_travel_hours: 15.0 },
+
+  // WH-HYD-06 distances
+  { from_warehouse_id: 'WH-HYD-06', to_warehouse_id: 'WH-BLR-01', distance_km: 570, avg_travel_hours: 10.0 },
+  { from_warehouse_id: 'WH-HYD-06', to_warehouse_id: 'WH-HOS-05', distance_km: 610, avg_travel_hours: 11.0 },
+  { from_warehouse_id: 'WH-HYD-06', to_warehouse_id: 'WH-CHE-03', distance_km: 630, avg_travel_hours: 11.5 },
+  { from_warehouse_id: 'WH-HYD-06', to_warehouse_id: 'WH-MYS-02', distance_km: 710, avg_travel_hours: 12.5 },
+  { from_warehouse_id: 'WH-HYD-06', to_warehouse_id: 'WH-COI-04', distance_km: 900, avg_travel_hours: 15.0 },
+];
